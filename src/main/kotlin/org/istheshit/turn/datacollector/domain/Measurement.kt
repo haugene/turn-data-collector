@@ -17,14 +17,4 @@ data class Measurement(
 
         val coreId: String,
         val publishedAt: ZonedDateTime
-) {
-    constructor(dto: MeasurementDto,
-                boatName: String) : this(
-            id = null,
-            boatName = boatName,
-            name = dto.event,
-            value = dto.data,
-            coreId = dto.coreId,
-            publishedAt = dto.publishedAt
-    )
-}
+)

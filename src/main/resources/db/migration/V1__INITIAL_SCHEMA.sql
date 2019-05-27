@@ -1,7 +1,7 @@
 -- slightly modified from hibernate auto-ddl
 create table measurement
 (
-  id           serial not null
+  id           bigserial not null
     constraint measurement_pkey
     primary key,
   boat_name    varchar(255),

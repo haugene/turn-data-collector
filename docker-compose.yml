@@ -4,7 +4,7 @@ services:
   turn-data-collector:
     build:
       context: .
-    image: haugene/turn-data-collector
+    image: registry.istheshit.org/haugene/turn-data-collector:2
     environment:
       - SPRING_PROFILES_ACTIVE=docker
     ports:
