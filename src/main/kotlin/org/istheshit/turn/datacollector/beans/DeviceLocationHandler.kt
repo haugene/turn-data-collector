@@ -1,18 +1,20 @@
 package org.istheshit.turn.datacollector.beans
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import org.apache.camel.Body
 import org.apache.camel.Headers
 import org.apache.camel.component.google.pubsub.GooglePubsubConstants
 import org.istheshit.turn.datacollector.domain.Device
-import org.istheshit.turn.datacollector.domain.Measurement
-import org.istheshit.turn.datacollector.repositories.MeasurementRepository
+import org.istheshit.turn.datacollector.domain.Location
+import org.istheshit.turn.datacollector.repositories.LocationRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.time.ZonedDateTime
 
 @Component
-class DeviceMetricHandler(
-    @Autowired val measurementRepository: MeasurementRepository
+class DeviceLocationHandler(
+    @Autowired val locationRepository: LocationRepository
 ) {
 
     fun process(@Body data: String, @Headers headers: Map<String, Any>): Map<String, Any> {
@@ -23,23 +25,34 @@ class DeviceMetricHandler(
         val published = ZonedDateTime.parse(attributes["published_at"])
         val messageId = headers[GooglePubsubConstants.MESSAGE_ID] as String
 
-        measurementRepository.save(Measurement(
-            id = null,
-            boatName = Device.findName(deviceId),
-            name = event,
-            value = data.toDouble(),
-            coreId = deviceId,
-            publishedAt = published,
-            messageId = messageId
-        ))
+        val locationDto: LocationDto = ObjectMapper().readValue(data)
+
+        locationRepository.save(
+            Location(
+                id = null,
+                boatName = Device.findName(deviceId),
+                coreId = deviceId,
+                publishedAt = published,
+                messageId = messageId,
+                latitude = locationDto.lat.toDouble(),
+                longitude = locationDto.lon.toDouble(),
+                accuracy = locationDto.accuracy.toDouble()
+            )
+        )
 
         return mapOf(
             Pair("device", Device.findName(deviceId)),
             Pair("deviceId", deviceId),
             Pair("event", event),
-            Pair("value", data),
+            Pair("location", locationDto),
             Pair("timestamp", published)
         )
     }
 
+}
+
+class LocationDto {
+    lateinit var lat: String
+    lateinit var lon: String
+    lateinit var accuracy: String
 }
